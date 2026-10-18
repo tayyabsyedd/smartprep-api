@@ -110,7 +110,8 @@ class User extends Authenticatable
 
     /**
      * Free tests remaining for a module: 2 for guests, 5 for enrolled.
-     * Only 'submitted' attempts consume the allowance.
+     * Only 'submitted' attempts that consumed quota count — free tests
+     * (is_free) and entitled (purchased/granted) attempts don't.
      */
     public function freeTestsRemaining(Module $module): int
     {
@@ -118,6 +119,7 @@ class User extends Authenticatable
 
         $used = $this->testAttempts()
             ->where('status', 'submitted')
+            ->where('used_free_quota', true)
             ->whereHas('test', fn ($q) => $q->where('module_id', $module->id))
             ->count();
 

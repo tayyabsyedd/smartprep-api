@@ -17,6 +17,7 @@ class TestAttempt extends Model
         'score',
         'total_marks',
         'app_switches',
+        'used_free_quota',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class TestAttempt extends Model
             'started_at' => 'datetime',
             'submitted_at' => 'datetime',
             'score' => 'decimal:2',
+            'used_free_quota' => 'boolean',
         ];
     }
 

@@ -16,6 +16,10 @@
 - **M1e** — seeders: admin, demo enrolled + guest students, roster (ROLL-100…103),
   Physics → 2 modules → 3 tests (15 questions), 1 tutor + 3 slots.
 - Feature tests: AuthTest + EnrollmentTest green.
+- **M1f** — test engine (BR-03–BR-08): AccessService (free/entitlement/quota),
+  test show/start (sanitized questions, resume in-progress), answer auto-save,
+  submit with set-based scoring, results scorecard, test history. Feature tests:
+  TestEngineTest (13 tests) green.
 
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).
