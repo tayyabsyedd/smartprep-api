@@ -23,6 +23,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->post('/enrollment/verify', [EnrollmentController::class, 'verify']);
 
 Route::middleware('auth:sanctum')->prefix('tests')->group(function () {
+    Route::get('/', [TestController::class, 'index']);
     Route::get('/{test}', [TestController::class, 'show']);
     Route::post('/{test}/start', [TestController::class, 'start']);
 });

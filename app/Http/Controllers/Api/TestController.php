@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Test\SubmitAttemptRequest;
 use App\Models\AttemptAnswer;
+use App\Models\Subject;
 use App\Models\Test;
 use App\Models\TestAttempt;
 use App\Services\AccessService;
@@ -14,6 +15,46 @@ use Illuminate\Support\Facades\DB;
 class TestController extends Controller
 {
     public function __construct(protected AccessService $access) {}
+
+    /**
+     * GET /api/tests — catalog tree: subjects -> modules -> published tests,
+     * with per-module free-attempt quota for the current user.
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        $subjects = Subject::orderBy('sort_order')
+            ->with(['modules' => function ($query) {
+                $query->orderBy('sort_order')->with(['tests' => function ($q) {
+                    $q->where('status', 'published')->orderBy('id')->withCount('questions');
+                }]);
+            }])
+            ->get()
+            ->map(fn ($subject) => [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'modules' => $subject->modules->map(fn ($module) => [
+                    'id' => $module->id,
+                    'name' => $module->name,
+                    'subject' => $subject->name,
+                    'free_tests_remaining' => $user->freeTestsRemaining($module),
+                    'tests' => $module->tests->map(fn ($test) => [
+                        'id' => $test->id,
+                        'title' => $test->title,
+                        'kind' => $test->kind,
+                        'timed' => (bool) $test->timed,
+                        'duration_minutes' => $test->duration_minutes,
+                        'is_free' => (bool) $test->is_free,
+                        'price' => $test->price,
+                        'question_count' => $test->questions_count,
+                    ])->values(),
+                ])->values(),
+            ])
+            ->values();
+
+        return response()->json(['subjects' => $subjects]);
+    }
 
     /**
      * GET /api/tests/{test} — metadata + access check.
