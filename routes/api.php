@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\RosterImportController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\TestController;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -31,6 +34,15 @@ Route::middleware('auth:sanctum')->prefix('test-attempts')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->get('/profile/test-history', [ProfileController::class, 'testHistory']);
+
+// Documents: index is public (visibility-filtered); stream is gatekept.
+// Files live under storage/app/notes — never web-accessible, so this
+// route is the only access path (no hotlinking possible).
+Route::get('/documents', [DocumentController::class, 'index']);
+Route::get('/documents/{document}/stream', [DocumentController::class, 'stream']);
+
+Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])
+    ->post('/admin/roster/import', [RosterImportController::class, 'import']);
 
 // Payment gateway callbacks. Each driver validates its own signature.
 // Bank transfers have no callback — admin approval calls PaymentManager directly.

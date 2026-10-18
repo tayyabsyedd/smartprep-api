@@ -20,6 +20,11 @@
   test show/start (sanitized questions, resume in-progress), answer auto-save,
   submit with set-based scoring, results scorecard, test history. Feature tests:
   TestEngineTest (13 tests) green.
+- **M1g** — protected documents (BR-12/13): visibility-filtered Subject→Module→Chapter
+  index (public for guests), gatekept PDF streaming from storage/app/notes
+  (realpath traversal guard, inline disposition). Admin roster CSV import
+  (batch upsert, claims preserved). Seed PDFs + DocumentSeeder. Feature tests:
+  DocumentsTest + RosterImportTest green.
 
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).

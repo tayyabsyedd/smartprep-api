@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             DemoUsersSeeder::class,
             ContentSeeder::class,
             TutorSeeder::class,
+            DocumentSeeder::class,
         ]);
     }
 }
