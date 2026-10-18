@@ -17,12 +17,15 @@ class TestController extends Controller
     public function __construct(protected AccessService $access) {}
 
     /**
-     * GET /api/tests — catalog tree: subjects -> modules -> published tests,
-     * with per-module free-attempt quota for the current user.
+     * GET /api/tests — catalog tree: subjects -> modules -> published tests.
+     * Public (BRD guest browsing): guests see the full hierarchy with the
+     * default guest quota (2); logged-in users get their live quota.
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        // Optional auth: resolve the sanctum user manually instead of
+        // requiring auth middleware, so guests can browse the catalog.
+        $user = auth('sanctum')->user();
 
         $subjects = Subject::orderBy('sort_order')
             ->with(['modules' => function ($query) {
@@ -38,7 +41,7 @@ class TestController extends Controller
                     'id' => $module->id,
                     'name' => $module->name,
                     'subject' => $subject->name,
-                    'free_tests_remaining' => $user->freeTestsRemaining($module),
+                    'remaining_quota' => $user ? $user->freeTestsRemaining($module) : 2,
                     'tests' => $module->tests->map(fn ($test) => [
                         'id' => $test->id,
                         'title' => $test->title,

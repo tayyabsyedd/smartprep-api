@@ -63,7 +63,7 @@ class TestsCatalogTest extends TestCase
 
         $response->assertJsonPath('subjects.0.name', 'Physics');
         $response->assertJsonPath('subjects.0.modules.0.name', 'Mechanics');
-        $response->assertJsonPath('subjects.0.modules.0.free_tests_remaining', 2);
+        $response->assertJsonPath('subjects.0.modules.0.remaining_quota', 2);
 
         $tests = $response->json('subjects.0.modules.0.tests');
         $this->assertCount(1, $tests);
@@ -79,11 +79,21 @@ class TestsCatalogTest extends TestCase
 
         $this->getJson('/api/tests', $this->headers($enrolled))
             ->assertOk()
-            ->assertJsonPath('subjects.0.modules.0.free_tests_remaining', 5);
+            ->assertJsonPath('subjects.0.modules.0.remaining_quota', 5);
     }
 
-    public function test_catalog_requires_auth(): void
+    public function test_catalog_allows_guests_without_token(): void
     {
-        $this->getJson('/api/tests')->assertUnauthorized();
+        $this->seedCatalog();
+
+        // BRD: guests must be able to browse the catalog — no 401 wall.
+        $this->getJson('/api/tests')
+            ->assertOk()
+            ->assertJsonPath('subjects.0.name', 'Physics')
+            ->assertJsonPath('subjects.0.modules.0.remaining_quota', 2);
+
+        $tests = $this->getJson('/api/tests')->json('subjects.0.modules.0.tests');
+        $this->assertCount(1, $tests);
+        $this->assertSame('Free Practice', $tests[0]['title']);
     }
 }

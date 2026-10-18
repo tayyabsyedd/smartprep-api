@@ -87,22 +87,47 @@ class DocumentsTest extends TestCase
         return $ids;
     }
 
-    public function test_guest_sees_only_public_documents(): void
+    protected function docVisibility(TestResponse $response, int $docId): ?string
     {
-        $ids = $this->docIds($this->getJson('/api/documents')->assertOk());
+        foreach ($response->json('subjects') as $subject) {
+            foreach ($subject['modules'] as $module) {
+                foreach ($module['chapters'] as $chapter) {
+                    foreach ($chapter['documents'] as $doc) {
+                        if ($doc['id'] === $docId) {
+                            return $doc['visibility'];
+                        }
+                    }
+                }
+            }
+        }
 
-        $this->assertContains($this->publicDoc->id, $ids);
-        $this->assertNotContains($this->enrolledDoc->id, $ids);
+        return null;
     }
 
-    public function test_non_enrolled_student_sees_only_public_documents(): void
+    public function test_guest_sees_all_documents_with_visibility_flags(): void
+    {
+        // BRD: guests browse everything; enrolled-only docs carry a lock
+        // badge (visibility flag). The stream endpoint still 403s them.
+        $response = $this->getJson('/api/documents')->assertOk();
+
+        $ids = $this->docIds($response);
+        $this->assertContains($this->publicDoc->id, $ids);
+        $this->assertContains($this->enrolledDoc->id, $ids);
+
+        $this->assertSame('enrolled', $this->docVisibility($response, $this->enrolledDoc->id));
+        $this->assertSame('public', $this->docVisibility($response, $this->publicDoc->id));
+    }
+
+    public function test_non_enrolled_student_sees_all_documents_with_visibility_flags(): void
     {
         $student = User::factory()->create(['is_enrolled' => false]);
 
-        $ids = $this->docIds($this->getJson('/api/documents', $this->headers($student))->assertOk());
+        $response = $this->getJson('/api/documents', $this->headers($student))->assertOk();
 
+        $ids = $this->docIds($response);
         $this->assertContains($this->publicDoc->id, $ids);
-        $this->assertNotContains($this->enrolledDoc->id, $ids);
+        $this->assertContains($this->enrolledDoc->id, $ids);
+        $this->assertSame('enrolled', $this->docVisibility($response, $this->enrolledDoc->id));
     }
 
     public function test_enrolled_student_sees_all_documents(): void

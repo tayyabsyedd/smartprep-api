@@ -17,14 +17,11 @@ class DocumentController extends Controller
     {
         // Optional auth: guests may browse public documents, so we resolve
         // the sanctum user manually instead of requiring auth middleware.
-        $user = auth('sanctum')->user();
-        $isEnrolled = $user && $user->is_enrolled;
-
+        // NOTE: enrolled documents are NOT filtered out of the listing.
+        // Guests and non-enrolled students see them with a lock badge (the
+        // `visibility` flag); the stream endpoint stays the enforcement
+        // point and still 403s them.
         $query = Document::with(['subject', 'module'])->orderBy('id');
-
-        if (! $isEnrolled) {
-            $query->where('visibility', 'public');
-        }
 
         if ($request->filled('subject_id')) {
             $query->where('subject_id', $request->integer('subject_id'));

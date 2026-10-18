@@ -22,10 +22,14 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware('auth:sanctum')->post('/enrollment/verify', [EnrollmentController::class, 'verify']);
 
-Route::middleware('auth:sanctum')->prefix('tests')->group(function () {
+Route::prefix('tests')->group(function () {
+    // Public catalog (BRD: guests must be able to browse tests & quota).
     Route::get('/', [TestController::class, 'index']);
-    Route::get('/{test}', [TestController::class, 'show']);
-    Route::post('/{test}/start', [TestController::class, 'start']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/{test}', [TestController::class, 'show']);
+        Route::post('/{test}/start', [TestController::class, 'start']);
+    });
 });
 
 Route::middleware('auth:sanctum')->prefix('test-attempts')->group(function () {
