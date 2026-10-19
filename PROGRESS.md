@@ -25,6 +25,18 @@
   (realpath traversal guard, inline disposition). Admin roster CSV import
   (batch upsert, claims preserved). Seed PDFs + DocumentSeeder. Feature tests:
   DocumentsTest + RosterImportTest green.
+- **M4 (payments)** — gateway abstraction + checkout (BR-05/18/19/20/26):
+  MockPaymentDriver (dev-only instant completion, entitlement grant);
+  JazzCash sandbox-ready driver (HMAC-SHA256 per official spec, verified
+  against their worked example); Easypaisa sandbox-ready driver
+  (AES-128-ECB merchantHashedReq per merchant plugin spec); fixed IPN routes
+  /webhooks/jazzcash + /webhooks/easypaisa (signature failures → 400,
+  cross-driver reference replay rejected); POST /api/purchases/initiate,
+  POST /{purchase}/upload-slip (5MB image/PDF → storage/app/private/payment_slips,
+  owner-only), GET /my-purchases; pending_verification status; mobile
+  PaywallModal checkout (dev-only Mock, JazzCash/Easypaisa 11-digit prompt,
+  bank transfer details + receipt upload → pending banner). Suite: 66 tests /
+  214 assertions green. Mobile tsc clean.
 
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).
