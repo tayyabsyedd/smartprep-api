@@ -37,6 +37,15 @@
   PaywallModal checkout (dev-only Mock, JazzCash/Easypaisa 11-digit prompt,
   bank transfer details + receipt upload → pending banner). Suite: 66 tests /
   214 assertions green. Mobile tsc clean.
+- **M6 (document viewer)** — secure in-app PDF reader (BR-13): DocumentViewerScreen
+  (bearer-auth stream download → sandboxed cache, native react-native-pdf
+  rendering, page indicator in header, progress loader + retry, cache deleted
+  on unmount, screenshot/screen-record blocked while open); NotesScreen opens
+  accessible docs in the viewer; locked docs open a roll-ID unlock modal
+  (in-place verification for students, account creation for guests). New deps:
+  react-native-pdf, expo-file-system, expo-screen-capture — the dev-client APK
+  must be rebuilt once (`eas build --profile development --platform android`)
+  before these native modules load on the phone. Mobile tsc clean.
 
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).
