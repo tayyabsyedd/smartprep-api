@@ -48,4 +48,9 @@ class Purchase extends Model
     {
         return $this->status === 'pending';
     }
+
+    public function isPendingVerification(): bool
+    {
+        return $this->status === 'pending_verification';
+    }
 }

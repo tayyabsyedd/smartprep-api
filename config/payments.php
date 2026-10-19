@@ -4,6 +4,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mock driver (development & testing)
+    |--------------------------------------------------------------------------
+    | Completes purchases instantly without a gateway. Enabled by default
+    | only in the local environment; the initiate endpoint refuses it
+    | everywhere else.
+    */
+    'mock' => [
+        'enabled' => env('PAYMENT_MOCK_ENABLED', env('APP_ENV', 'production') === 'local'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | JazzCash (Mobilink Microfinance Bank)
     |--------------------------------------------------------------------------
     | Filled once the client provides the registered business merchant

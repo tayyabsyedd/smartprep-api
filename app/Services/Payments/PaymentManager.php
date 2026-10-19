@@ -8,6 +8,7 @@ use App\Services\Payments\Contracts\PaymentDriver;
 use App\Services\Payments\Drivers\BankTransferDriver;
 use App\Services\Payments\Drivers\EasypaisaDriver;
 use App\Services\Payments\Drivers\JazzCashDriver;
+use App\Services\Payments\Drivers\MockPaymentDriver;
 use App\Services\Payments\Drivers\PlayBillingDriver;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -16,6 +17,7 @@ class PaymentManager
 {
     /** @var array<string, class-string<PaymentDriver>> */
     protected array $drivers = [
+        'mock' => MockPaymentDriver::class,
         'jazzcash' => JazzCashDriver::class,
         'easypaisa' => EasypaisaDriver::class,
         'bank_transfer' => BankTransferDriver::class,
@@ -33,8 +35,8 @@ class PaymentManager
 
     /**
      * Mark a purchase completed and grant access to the purchasable.
-     * Called by the webhook controller (gateways) or by admin approval
-     * (manual bank transfer). Safe to call twice — idempotent.
+     * Called by the webhook controller (gateways), the mock driver, or by
+     * admin approval (manual bank transfer). Safe to call twice — idempotent.
      */
     public function complete(Purchase $purchase, ?string $gatewayReference = null, ?array $gatewayResponse = null): void
     {

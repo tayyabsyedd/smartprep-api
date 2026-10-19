@@ -25,13 +25,14 @@ class BankTransferDriver implements PaymentDriver
     {
         return [
             'purchase_id' => $purchase->id,
-            'amount' => $purchase->amount,
-            'currency' => $purchase->currency,
-            'bank' => config('payments.bank.bank_name'),
-            'account_title' => config('payments.bank.account_title'),
-            'account_number' => config('payments.bank.account_number'),
-            'iban' => config('payments.bank.iban'),
-            'instructions' => 'Transfer the exact amount to the account above, then upload your payment receipt in the app. An admin will verify it and grant access.',
+            'status' => $purchase->status,
+            'payment_data' => [
+                'bank' => config('payments.bank.bank_name'),
+                'account_title' => config('payments.bank.account_title'),
+                'account_number' => config('payments.bank.account_number'),
+                'iban' => config('payments.bank.iban'),
+                'instructions' => 'Transfer the exact amount to the account above, then upload your payment receipt in the app. An admin will verify it and grant access.',
+            ],
         ];
     }
 

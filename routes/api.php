@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\PurchaseController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -49,7 +50,19 @@ Route::get('/documents/{document}/stream', [DocumentController::class, 'stream']
 Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])
     ->post('/admin/roster/import', [RosterImportController::class, 'import']);
 
+// Purchases & checkout (M4).
+Route::middleware('auth:sanctum')->prefix('purchases')->group(function () {
+    Route::post('/initiate', [PurchaseController::class, 'initiate']);
+    Route::post('/{purchase}/upload-slip', [PurchaseController::class, 'uploadSlip']);
+    Route::get('/my-purchases', [PurchaseController::class, 'myPurchases']);
+});
+
 // Payment gateway callbacks. Each driver validates its own signature.
 // Bank transfers have no callback — admin approval calls PaymentManager directly.
+// The two fixed URLs exist so gateways can be configured with a stable IPN address.
 Route::post('/webhooks/payments/{driver}', [PaymentWebhookController::class, 'handle'])
     ->whereIn('driver', ['jazzcash', 'easypaisa', 'play_billing']);
+Route::post('/webhooks/jazzcash', [PaymentWebhookController::class, 'handle'])
+    ->defaults('driver', 'jazzcash');
+Route::post('/webhooks/easypaisa', [PaymentWebhookController::class, 'handle'])
+    ->defaults('driver', 'easypaisa');
