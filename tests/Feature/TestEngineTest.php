@@ -126,7 +126,7 @@ class TestEngineTest extends TestCase
 
         $questions = $response->json('questions');
         $this->assertCount(2, $questions);
-        $this->assertSame(['question_id', 'qtype', 'question_text', 'options', 'marks'], array_keys($questions[0]));
+        $this->assertSame(['question_id', 'qtype', 'question_text', 'passage_text', 'options', 'marks'], array_keys($questions[0]));
         $this->assertArrayNotHasKey('correct_options', $questions[0]);
         $this->assertArrayNotHasKey('explanation', $questions[0]);
 

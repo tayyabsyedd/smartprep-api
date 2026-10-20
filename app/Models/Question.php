@@ -10,6 +10,7 @@ class Question extends Model
         'test_id',
         'qtype',
         'question_text',
+        'passage_text',
         'options',
         'correct_options',
         'explanation',

@@ -127,6 +127,7 @@ class TestController extends Controller
             'question_id' => $question->id,
             'qtype' => $question->qtype,
             'question_text' => $question->question_text,
+            'passage_text' => $question->passage_text,
             'options' => $question->options,
             'marks' => $question->marks,
         ]);

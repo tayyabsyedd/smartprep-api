@@ -46,6 +46,18 @@
   react-native-pdf, expo-file-system, expo-screen-capture — the dev-client APK
   must be rebuilt once (`eas build --profile development --platform android`)
   before these native modules load on the phone. Mobile tsc clean.
+- **IELTS content (Reading Practice Test 1)** — the client's real test seeded
+  (IeltsReadingTestSeeder): Subject "IELTS Academic" → Module "Reading Module"
+  → "Reading Practice Test 1" (free, timed 60 min, published). 26 option-based
+  questions transcribed from the client's question paper + official answer key:
+  Q1–8 True/False/Not Given, Q14–21 paragraph heading matching, Q26 MCQ,
+  Q27–31 TFNG, Q32–35 MCQs. New nullable `questions.passage_text` column holds
+  each passage's full text on its section's first question (Q1/Q14/Q27) and is
+  exposed in the test-start payload for the runner's passage view. The paper's
+  14 typed completion questions (Q9–13, 22–25, 36–40) are NOT seeded yet —
+  the engine has no text_input qtype; their texts + answers are recorded in
+  the seeder for when it lands. Verified: seeder idempotent, catalog shows
+  the IELTS branch, suite green (66 tests).
 
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).
