@@ -28,9 +28,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('SmartPrep Admin')
+            ->brandLogo(asset('images/ssf-logo.png'))
+            ->brandLogoHeight('2.75rem')
+            ->favicon(asset('images/ssf-favicon.png'))
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#F5B332'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
