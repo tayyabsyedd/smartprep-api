@@ -38,6 +38,15 @@ return [
             'report' => false,
         ],
 
+        // Root = storage/app so uploaded note PDFs land at
+        // storage/app/notes/... — the exact layout DocumentController
+        // streams from (documents.file_path is stored as "notes/<file>").
+        'app_storage' => [
+            'driver' => 'local',
+            'root' => storage_path('app'),
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

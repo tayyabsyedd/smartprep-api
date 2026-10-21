@@ -58,6 +58,22 @@
   the engine has no text_input qtype; their texts + answers are recorded in
   the seeder for when it lands. Verified: seeder idempotent, catalog shows
   the IELTS branch, suite green (66 tests).
+- **M3 Admin CMS (Filament) — pass 1** — Tayyab chose Filament over Next.js
+  (2026-10-21; matches PRD §6 + Proposal baseline). Filament v5.10 installed
+  inside smartprep-api (required enabling PHP's intl extension in the XAMPP
+  php.ini). Panel at /admin ("SmartPrep Admin"), admins only (User implements
+  FilamentUser; canAccessPanel = isAdmin). Dashboard stats: students, pending
+  enrollments, slips awaiting verification, completed revenue. Resources:
+  **Enrollment Requests** — the BR-02 approval queue (pending-by-default,
+  Approve/Reject actions via EnrollmentReviewService; approve mirrors the
+  auto-match semantics: claims roster row if unclaimed, flips is_enrolled);
+  **Purchases** — bank-slip verification (View slip streams the private file
+  via an admin-only route; Approve → PaymentManager::complete grants access,
+  Reject → fail); Students (users, role select, safe password handling),
+  Institute Roster, Subjects, Modules, Tests, Questions, Documents (PDF
+  upload to storage/app/notes via a new `app_storage` disk — the layout the
+  stream endpoint reads), Batches, Tutors, Tutor Slots. Tests: +8
+  (EnrollmentReviewTest, AdminPanelAccessTest) — suite green at 74.
 
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).
