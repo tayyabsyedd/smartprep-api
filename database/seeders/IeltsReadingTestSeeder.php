@@ -15,13 +15,10 @@ use Illuminate\Database\Seeder;
  *   - "Reading Practice Test 1.pdf"        (question paper)
  *   - "Reading Practice Test 1 - Answers.pdf" (official answer key)
  *
- * SCOPE: the 26 option-based questions (1–8, 14–21, 26, 27–35), so the
- * test totals 26 marks for now. The paper's other 14 questions
- * (9–13, 22–25, 36–40) are typed sentence/summary completions, which the
- * current engine cannot score (qtype enum: mcq / true_false /
- * multi_select). Their texts and official answers are recorded in the
- * comment block at the bottom of this file; they slot in at sort_order
- * 9–13, 22–25 and 36–40 once a text_input qtype exists.
+ * SCOPE: all 40 questions — the 26 option-based ones (1–8, 14–21, 26,
+ * 27–35) plus the 14 typed sentence/summary completions (9–13, 22–25,
+ * 36–40) as text_input questions, scored against the official key with
+ * light normalization (case/whitespace/hyphens forgiven, spelling not).
  *
  * Each passage's full text is stored in `passage_text` on the FIRST
  * question of its section (Q1, Q14, Q27).
@@ -56,15 +53,23 @@ class IeltsReadingTestSeeder extends Seeder
             ]
         );
 
-        if ($test->questions()->exists()) {
-            return;
+        if (! $test->questions()->exists()) {
+            foreach ($this->questions() as $question) {
+                Question::create(array_merge($question, [
+                    'test_id' => $test->id,
+                    'marks' => 1,
+                ]));
+            }
         }
 
-        foreach ($this->questions() as $question) {
-            Question::create(array_merge($question, [
-                'test_id' => $test->id,
-                'marks' => 1,
-            ]));
+        // Typed completion questions (text_input). Keyed by sort_order so
+        // re-runs never duplicate them, and databases seeded before the
+        // text_input qtype existed gain them on the next run.
+        foreach ($this->textQuestions() as $question) {
+            Question::firstOrCreate(
+                ['test_id' => $test->id, 'sort_order' => $question['sort_order']],
+                array_merge($question, ['test_id' => $test->id, 'marks' => 1])
+            );
         }
     }
 
@@ -366,14 +371,127 @@ Iannucci suggested one way of easing the strain on the license fee was "by pushi
 Mr Whittingdale, who was interviewed by ITV News' Alastair Stewart at the festival, said he wanted an open debate about whether the corporation should do everything it has done in the past. He said he had a slight sense that people who rushed to defend the BBC were "trying to have an argument that's never been started". "Whatever my view is, I don't determine what programmes the BBC should show," he added. "That's the job of the BBC." Mr Whittingdale said any speculation that the Conservative Party had always wanted to change the BBC due to issues such as its editorial line was "absolute nonsense".
 TEXT;
     }
+
+    /**
+     * Typed completion questions (text_input). Texts from the question
+     * paper; answers from the client's official key — correct_options
+     * holds the acceptable answer strings (correct spelling required).
+     */
+    private function textQuestions(): array
+    {
+        return [
+            // ── Passage 1 — Questions 9–13 (NO MORE THAN TWO WORDS) ──
+            [
+                'sort_order' => 9,
+                'qtype' => 'text_input',
+                'question_text' => 'Only a small fraction of people have imagination as ___ as Lauren does.',
+                'options' => [],
+                'correct_options' => ['Vibrant'],
+            ],
+            [
+                'sort_order' => 10,
+                'qtype' => 'text_input',
+                'question_text' => 'Hyperphantasia is ___ to aphantasia.',
+                'options' => [],
+                'correct_options' => ['Polar-opposite'],
+            ],
+            [
+                'sort_order' => 11,
+                'qtype' => 'text_input',
+                'question_text' => "There are a lot of subjectivity in comparing people's imagination — somebody's vivid scene could be another person's ___.",
+                'options' => [],
+                'correct_options' => ['Grainy picture'],
+            ],
+            [
+                'sort_order' => 12,
+                'qtype' => 'text_input',
+                'question_text' => 'Prof Zeman is ___ that aphantasia is not an illness.',
+                'options' => [],
+                'correct_options' => ['Adamant'],
+            ],
+            [
+                'sort_order' => 13,
+                'qtype' => 'text_input',
+                'question_text' => "Many people spend their lives with ___ somewhere in the mind's eye.",
+                'options' => [],
+                'correct_options' => ['Imagery hovering'],
+            ],
+            // ── Passage 2 — Questions 22–25 (ONLY ONE WORD) ──
+            [
+                'sort_order' => 22,
+                'qtype' => 'text_input',
+                'question_text' => 'To escape from a prison, Joaquin Guzman had to use such traits as creative thinking, long-term planning and ___.',
+                'options' => [],
+                'correct_options' => ['Perseverance'],
+            ],
+            [
+                'sort_order' => 23,
+                'qtype' => 'text_input',
+                'question_text' => 'The Sinaloa cartel built a grand underground tunnel and even used ___ to avoid the fence.',
+                'options' => [],
+                'correct_options' => ['Catapult'],
+            ],
+            [
+                'sort_order' => 24,
+                'qtype' => 'text_input',
+                'question_text' => 'The main difference between two groups is that criminals, unlike large corporations, often have ___ encoded into their daily life.',
+                'options' => [],
+                'correct_options' => ['Improvisation'],
+            ],
+            [
+                'sort_order' => 25,
+                'qtype' => 'text_input',
+                'question_text' => 'Due to being persuasive, Walid Abdul-Wahab found a ___ of Amish camel milk farmers.',
+                'options' => [],
+                'correct_options' => ['Network'],
+            ],
+            // ── Passage 3 — Questions 36–40 (summary completion, NO MORE THAN TWO WORDS) ──
+            [
+                'sort_order' => 36,
+                'qtype' => 'text_input',
+                'question_text' => "Iannucci recommended increasing BBC's profit by pushing ourselves more ___.",
+                'options' => [],
+                'correct_options' => ['commercially abroad'],
+            ],
+            [
+                'sort_order' => 37,
+                'qtype' => 'text_input',
+                'question_text' => 'He suggests being more aggressive in selling British shows, through advertising and proper international ___.',
+                'options' => [],
+                'correct_options' => ['subscription channels'],
+            ],
+            [
+                'sort_order' => 38,
+                'qtype' => 'text_input',
+                'question_text' => 'Also, he invokes producers to stop being ___ and modest about making money',
+                'options' => [],
+                'correct_options' => ['icky'],
+            ],
+            [
+                'sort_order' => 39,
+                'qtype' => 'text_input',
+                'question_text' => '…and invest into even ___ quality shows.',
+                'options' => [],
+                'correct_options' => ['more ambitious'],
+            ],
+            [
+                'sort_order' => 40,
+                'qtype' => 'text_input',
+                'question_text' => 'However, Mr Whittingdale denied any ___ that the Conservative Party had always wanted to change the BBC because of its editorial line.',
+                'options' => [],
+                'correct_options' => ['speculation'],
+            ],
+        ];
+    }
 }
 
 /*
 |--------------------------------------------------------------------------
-| NOT YET SEEDED — typed completion questions (awaiting a text_input qtype)
+| Typed completion questions — SEEDED (text_input qtype, 2026-10-21)
 |--------------------------------------------------------------------------
-| Texts from the question paper; answers from the client's official key.
-| Correct spelling is required (per the answer sheet).
+| The 14 questions below now live in textQuestions() above. This block is
+| kept as the transcription record: texts from the question paper,
+| answers from the client's official key (correct spelling required).
 |
 | Passage 1 — Questions 9–13 (NO MORE THAN TWO WORDS):
 |   9.  "Only a small fraction of people have imagination as ___ as Lauren does." → Vibrant

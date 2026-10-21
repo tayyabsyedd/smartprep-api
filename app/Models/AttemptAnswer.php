@@ -10,6 +10,7 @@ class AttemptAnswer extends Model
         'attempt_id',
         'question_id',
         'selected',
+        'text_answer',
         'is_correct',
         'time_spent_seconds',
     ];

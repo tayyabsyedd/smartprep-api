@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Questions\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
@@ -15,7 +16,13 @@ class QuestionForm
                 TextInput::make('test_id')
                     ->required()
                     ->numeric(),
-                TextInput::make('qtype')
+                Select::make('qtype')
+                    ->options([
+                        'mcq' => 'Multiple choice (single)',
+                        'true_false' => 'True / False',
+                        'multi_select' => 'Multiple choice (multi)',
+                        'text_input' => 'Typed answer (text_input)',
+                    ])
                     ->required()
                     ->default('mcq'),
                 Textarea::make('question_text')

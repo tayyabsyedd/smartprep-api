@@ -152,8 +152,9 @@ class TestController extends Controller
         $data = $request->validate([
             'answers' => ['required', 'array', 'min:1'],
             'answers.*.question_id' => ['required', 'integer'],
-            'answers.*.selected' => ['required', 'array'],
+            'answers.*.selected' => ['nullable', 'array'],
             'answers.*.selected.*' => ['integer', 'min:0'],
+            'answers.*.text_answer' => ['nullable', 'string', 'max:1000'],
             'answers.*.time_spent_seconds' => ['nullable', 'integer', 'min:0'],
         ]);
 
@@ -168,7 +169,8 @@ class TestController extends Controller
                 AttemptAnswer::updateOrCreate(
                     ['attempt_id' => $attempt->id, 'question_id' => $answer['question_id']],
                     [
-                        'selected' => $answer['selected'],
+                        'selected' => $answer['selected'] ?? [],
+                        'text_answer' => $answer['text_answer'] ?? null,
                         'is_correct' => false,
                         'time_spent_seconds' => $answer['time_spent_seconds'] ?? 0,
                     ]
@@ -201,12 +203,18 @@ class TestController extends Controller
             foreach ($request->answers as $answer) {
                 $question = $questionMap->get($answer['question_id']);
                 $selected = $answer['selected'] ?? [];
+                $textAnswer = $answer['text_answer'] ?? null;
+
+                $isCorrect = $question->qtype === 'text_input'
+                    ? $this->textIsCorrect($textAnswer, $question->correct_options)
+                    : $this->isCorrect($selected, $question->correct_options);
 
                 AttemptAnswer::updateOrCreate(
                     ['attempt_id' => $attempt->id, 'question_id' => $question->id],
                     [
                         'selected' => $selected,
-                        'is_correct' => $this->isCorrect($selected, $question->correct_options),
+                        'text_answer' => $textAnswer,
+                        'is_correct' => $isCorrect,
                         'time_spent_seconds' => $answer['time_spent_seconds'] ?? 0,
                     ]
                 );
@@ -260,6 +268,28 @@ class TestController extends Controller
 
         $breakdown = $attempt->answers->map(function ($answer) {
             $question = $answer->question;
+
+            // Typed answers have no option indices: the submitted text and
+            // the acceptable answer strings are the labels themselves.
+            if ($question->qtype === 'text_input') {
+                return [
+                    'question_id' => $question->id,
+                    'qtype' => $question->qtype,
+                    'question_text' => $question->question_text,
+                    'options' => [],
+                    'selected_options' => [],
+                    'selected_labels' => filled($answer->text_answer) ? [$answer->text_answer] : [],
+                    'correct_options' => $question->correct_options ?? [],
+                    'correct_labels' => $question->correct_options ?? [],
+                    'text_answer' => $answer->text_answer,
+                    'is_correct' => (bool) $answer->is_correct,
+                    'marks' => $question->marks,
+                    'marks_obtained' => $answer->is_correct ? $question->marks : 0,
+                    'time_spent_seconds' => $answer->time_spent_seconds,
+                    'explanation' => $question->explanation,
+                ];
+            }
+
             $options = $question->options ?? [];
             $selected = $answer->selected ?? [];
             $correct = $question->correct_options ?? [];
@@ -273,6 +303,7 @@ class TestController extends Controller
                 'selected_labels' => collect($selected)->map(fn ($i) => $options[$i] ?? null)->values()->all(),
                 'correct_options' => $correct,
                 'correct_labels' => collect($correct)->map(fn ($i) => $options[$i] ?? null)->values()->all(),
+                'text_answer' => $answer->text_answer,
                 'is_correct' => (bool) $answer->is_correct,
                 'marks' => $question->marks,
                 'marks_obtained' => $answer->is_correct ? $question->marks : 0,
@@ -320,5 +351,38 @@ class TestController extends Controller
         $correct = collect($correct ?? [])->map(fn ($v) => (int) $v)->sort()->values()->all();
 
         return count($selected) > 0 && $selected === $correct;
+    }
+
+    /**
+     * Typed-answer comparison. The answer sheet requires correct spelling,
+     * so this is exact matching after light normalization: case, extra
+     * whitespace, hyphens vs spaces, and a trailing full stop are forgiven
+     * ("Polar-opposite" accepts "polar opposite"); spelling is not.
+     * correct_options holds the acceptable answer strings.
+     */
+    protected function textIsCorrect(?string $given, ?array $acceptable): bool
+    {
+        $given = $this->normalizeAnswerText($given);
+
+        if ($given === '') {
+            return false;
+        }
+
+        foreach ($acceptable ?? [] as $candidate) {
+            if ($given === $this->normalizeAnswerText((string) $candidate)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function normalizeAnswerText(?string $text): string
+    {
+        $text = mb_strtolower(trim((string) $text));
+        $text = str_replace(['-', '_'], ' ', $text);
+        $text = preg_replace('/\s+/', ' ', $text);
+
+        return rtrim(trim($text), '.');
     }
 }

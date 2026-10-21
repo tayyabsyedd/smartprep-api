@@ -16,8 +16,9 @@ class SubmitAttemptRequest extends FormRequest
         return [
             'answers' => ['required', 'array', 'min:1'],
             'answers.*.question_id' => ['required', 'integer', 'exists:questions,id'],
-            'answers.*.selected' => ['required', 'array'],
+            'answers.*.selected' => ['nullable', 'array'],
             'answers.*.selected.*' => ['integer', 'min:0'],
+            'answers.*.text_answer' => ['nullable', 'string', 'max:1000'],
             'answers.*.time_spent_seconds' => ['nullable', 'integer', 'min:0'],
             'app_switches' => ['nullable', 'integer', 'min:0'],
         ];

@@ -75,6 +75,18 @@
   stream endpoint reads), Batches, Tutors, Tutor Slots. Tests: +8
   (EnrollmentReviewTest, AdminPanelAccessTest) — suite green at 74.
 
+- **text_input question engine (Phase A #1)** — new qtype for typed
+  sentence/summary completions: migration adds 'text_input' to the qtype
+  enum (SQLite table rebuild, same pattern as purchases) + attempt_answers
+  .text_answer. correct_options holds acceptable answer strings; scoring
+  normalizes case/whitespace/hyphens (spelling NOT forgiven — the IELTS key
+  requires it). Answers save/submit/results all carry text_answer; mobile
+  runner renders a text field, results show typed vs correct answer;
+  Filament question form offers the new type. Reading Practice Test 1 is
+  now the full 40 questions / 40 marks (the 14 held completions seeded via
+  firstOrCreate on sort_order — idempotent, existing DBs gain them on
+  re-seed). Suite: 78 tests green (+4 TextInputEngineTest).
+
 ## Next
 - Roster CSV import command (admin uploads the institute's roll list).
 - Test engine endpoints: list tests, start attempt, submit answers, score report.
